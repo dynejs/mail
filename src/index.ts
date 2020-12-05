@@ -1,2 +1,3 @@
-export { Mailer, Mail } from './mail'
-export { MailModule } from './module'
+export { Mailer } from './mailer'
+export { nodeMailer } from './driver/node-mailer'
+export { testMailer } from './driver/test-mailer'

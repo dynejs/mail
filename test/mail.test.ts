@@ -1,36 +1,44 @@
+import * as fs from 'fs'
+import * as path from 'path'
 import assert = require('assert')
-import { app, container, BaseModule, Mailer, Views } from '@dynejs/core'
-import { MailModule } from '../src'
+import { Mailer, testMailer } from '../dist'
 
-let mailer = null
-let views = null
+const mailer = new Mailer({
+    url: 'http://localhost',
+    host: '',
+    port: '',
+    user: '',
+    pass: '',
+    secure: false,
+    driver: testMailer
+})
+
+const html = `
+<style>
+.test {
+    border: 1px solid red;
+}
+</style>
+<div class="test">Hello world</div>
+`
 
 describe('Mail', () => {
-    before(function() {
-        app([
-            BaseModule,
-            MailModule
-        ], process.cwd() + '/test')
-
-        mailer = container().resolve(Mailer)
-        views = container().resolve(Views)
-
-        // Uncomment to run it
-        // this.skip()
-    })
-
     it('should send an email', async function() {
-        views.addDir(__dirname + '/views')
-
-        const res = await mailer.send({
-            to: 'test@user.com',
+        await mailer.send({
+            to: 'recepient@test.com',
             subject: 'Test email',
-            template: 'test-mail',
-            data: {
-                hello: 'World'
-            }
+            content: html,
+            from: 'test@host.com'
         })
 
-        assert(res.accepted[0] === 'test@user.com')
+        const files = fs.readdirSync(path.join(process.cwd(), 'mails'))
+        const file = files[0]
+        const content = fs.readFileSync(path.join(process.cwd(), 'mails', file), 'utf8')
+        const lines = content.split('\n').filter(_ => _)
+
+        assert(lines[0] === 'FROM: test@host.com')
+        assert(lines[1] === 'TO: recepient@test.com')
+        assert(lines[2] === 'SUBJECT: Test email')
+        assert(lines[4] === '<div class="test" style="border: 1px solid red;">Hello world</div>')
     })
 })

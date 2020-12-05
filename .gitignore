@@ -1,4 +1,4 @@
-.idea
-node_modules
-dist
-test/config.js
+/dist
+/mails
+/.idea
+/node_modules
